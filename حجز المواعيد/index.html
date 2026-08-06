@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام حجز مواعيد العيادات - وضع الاستقبال</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Cairo', sans-serif;
+        }
+        
+         ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+         ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        
+         ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        
+         ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        .slot-btn {
+            transition: all 0.15s ease;
+        }
+        
+        .slot-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .toast-anim {
+            animation: slideUp 0.3s ease, fadeOut 0.3s ease 2.7s;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 20px);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body class="bg-slate-50 min-h-screen">
+
+    <!-- Top Bar -->
+    <div class="bg-slate-900 text-white p-3 flex items-center justify-between shadow-lg sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center text-xl shadow-inner">🏥</div>
+            <div>
+                <h1 class="font-bold text-lg leading-tight">نظام حجز مواعيد العيادات</h1>
+                <p class="text-slate-400 text-xs">وضع الاستقبال السريع </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <div class="bg-slate-800 px-3 py-1.5 rounded-lg text-sm border border-slate-700">
+                <span class="text-slate-400">📅</span>
+                <span id="header-date" class="mr-1"></span>
+            </div>
+            <div class="bg-emerald-600 px-3 py-1.5 rounded-lg text-sm font-bold shadow-lg border border-emerald-500">
+                <span id="header-clock">--:--</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        <!-- LEFT SIDEBAR -->
+        <div class="lg:col-span-3 space-y-4">
+
+            <!-- Quick Add Doctor -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition">
+                <h3 class="font-bold text-slate-700 mb-3 text-sm flex items-center gap-2">
+                    <span class="w-6 h-6 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-xs">➕</span> تسجيل طبيب جديد
+                </h3>
+                <div class="space-y-2">
+                    <input id="qa-name" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" placeholder="اسم الطبيب">
+                    <input id="qa-spec" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" placeholder="التخصص">
+                    <button onclick="quickAddDoctor()" class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-bold hover:bg-emerald-600 transition shadow-md active:scale-[0.98]">
+                        تسجيل + توليد مواعيد اليوم
+                    </button>
+                </div>
+            </div>
+
+            <!-- Doctors List -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition">
+                <h3 class="font-bold text-slate-700 mb-3 text-sm flex items-center gap-2">
+                    <span class="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-xs">👨‍⚕️</span> الأطباء النشطون
+                </h3>
+                <div id="sidebar-doctors" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                    <div class="text-center text-slate-400 text-sm py-4">لا يوجد أطباء مسجلون</div>
+                </div>
+            </div>
+
+            <!-- Mini Stats -->
+            <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg p-4 text-white relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8"></div>
+                <div class="relative z-10">
+                    <div class="text-xs opacity-80 mb-1">مواعيد اليوم</div>
+                    <div class="text-4xl font-extrabold" id="mini-total">0</div>
+                    <div class="flex justify-between mt-3 text-sm">
+                        <span class="bg-white/20 px-2 py-0.5 rounded">محجوز: <strong id="mini-booked">0</strong></span>
+                        <span class="bg-white/20 px-2 py-0.5 rounded">متاح: <strong id="mini-free">0</strong></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER: Fast Booking -->
+        <div class="lg:col-span-6 space-y-4">
+
+            <!-- Fast Booking Panel -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="font-bold text-slate-800 text-lg flex items-center gap-2">
+                        <span class="text-2xl">⚡</span> حجز سريع للمريض
+                    </h2>
+                    <span class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full font-bold border border-emerald-200">وضع السكرتيرة</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Patient Info -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">👤 اسم المريض</label>
+                            <input id="fb-patient" type="text" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-lg font-bold text-slate-800 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition placeholder:font-normal placeholder:text-base"
+                                placeholder="اكتب اسم المريض هنا...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">📱 رقم الجوال</label>
+                            <input id="fb-phone" type="tel" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" placeholder="05xxxxxxxx">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">📝 ملاحظة سريعة (اختياري)</label>
+                            <input id="fb-notes" type="text" class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none transition" placeholder="مثال: كشف جديد / متابعة / تحليل">
+                        </div>
+                    </div>
+
+                    <!-- Doctor & Slot Selection -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">👨‍⚕️ اختر الطبيب</label>
+                            <select id="fb-doctor" onchange="loadAvailableSlots()" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer transition">
+                                <option value="">-- اختر الطبيب --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">🕐 اختر الموعد المتاح</label>
+                            <div id="fb-slots" class="grid grid-cols-3 gap-2 max-h-[150px] overflow-y-auto p-1">
+                                <div class="col-span-3 text-center text-slate-400 text-sm py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+                                    اختر طبيباً أولاً لعرض المواعيد
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Slot Preview -->
+                <div id="fb-preview" class="hidden mt-5 bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+                    <div>
+                        <div class="text-xs text-emerald-600 font-bold mb-0.5">الموعد المختار</div>
+                        <div class="text-emerald-800 font-bold text-lg" id="fb-preview-text"></div>
+                    </div>
+                    <button onclick="confirmFastBooking()" class="px-8 py-3 bg-emerald-500 text-white rounded-xl font-bold text-lg hover:bg-emerald-600 transition shadow-lg hover:shadow-xl active:scale-[0.97]">
+                        ✅ تأكيد الحجز الفوري
+                    </button>
+                </div>
+            </div>
+
+            <!-- Recent Patients -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                        <span>🔄</span> مرضى سابقون (حجز سريع بنقرة)
+                    </h3>
+                    <span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">انقر على اسم المريض لإعادة حجزه</span>
+                </div>
+                <div id="recent-patients" class="flex flex-wrap gap-2">
+                    <div class="text-slate-400 text-sm py-2">لا يوجد مرضى مسجلون بعد</div>
+                </div>
+            </div>
+
+            <!-- Today's Timeline -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
+                <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center gap-2">
+                    <span>📋</span> جدول مواعيد اليوم - نظرة سريعة
+                </h3>
+                <div id="today-timeline" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
+                    <div class="text-center text-slate-400 text-sm py-8">لا يوجد أطباء مسجلين. أضف طبيباً من القائمة اليسرى.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDEBAR -->
+        <div class="lg:col-span-3 space-y-4">
+
+            <!-- Live Queue -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition">
+                <h3 class="font-bold text-slate-700 mb-3 text-sm flex items-center gap-2">
+                    <span class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span> الطابور الحي
+                </h3>
+                <div id="live-queue" class="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+                    <div class="text-center text-slate-400 text-sm py-4">لا يوجد مرضى في الطابور</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition">
+                <h3 class="font-bold text-slate-700 mb-3 text-sm">⚙️ إجراءات سريعة</h3>
+                <div class="space-y-2">
+                    <button onclick="showAllAppointments()" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-700 font-bold transition text-right flex items-center gap-2">
+                        <span>📅</span> عرض كل المواعيد
+                    </button>
+                    <button onclick="exportToday()" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-700 font-bold transition text-right flex items-center gap-2">
+                        <span>📥</span> تصدير جدول اليوم (Excel)
+                    </button>
+                    <button onclick="clearAllData()" class="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 rounded-lg text-sm text-red-600 font-bold transition text-right flex items-center gap-2">
+                        <span>🗑️</span> مسح كل البيانات
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <h4 class="font-bold text-blue-800 text-xs mb-1">💡 تلميح</h4>
+                <p class="text-blue-600 text-xs leading-relaxed">
+                    المواعيد تُولد تلقائياً من 1 ظهراً حتى 6 مساءً (كل 20 دقيقة). عند إضافة طبيب جديد، يُنشأ جدوله فوراً.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- All Appointments Modal -->
+    <div id="modal-all" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden">
+            <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <h3 class="font-bold text-lg text-slate-800">📅 كل المواعيد المسجلة</h3>
+                <button onclick="closeModal()" class="w-8 h-8 bg-slate-200 rounded-full hover:bg-slate-300 transition font-bold text-slate-600">✕</button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1">
+                <div class="flex gap-2 mb-4 sticky top-0 bg-white pb-2 border-b border-slate-100">
+                    <select id="all-filter-doc" onchange="renderAllAppointments()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="all">كل الأطباء</option>
+                    </select>
+                    <select id="all-filter-status" onchange="renderAllAppointments()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="all">كل الحالات</option>
+                        <option value="available">🟢 متاح</option>
+                        <option value="booked">✅ محجوز</option>
+                    </select>
+                </div>
+                <div id="all-appointments-list" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl z-50 text-sm font-bold"></div>
+
+    <script>
+        // ===== DATA =====
+        let doctors = JSON.parse(localStorage.getItem('clinic_doctors') || '[]');
+        let appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+        let selectedSlotId = null;
+
+        // ===== INIT =====
+        function init() {
+            updateClock();
+            setInterval(updateClock, 1000);
+            document.getElementById('header-date').textContent = new Date().toLocaleDateString('ar-SA', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            renderAll();
+        }
+
+        function updateClock() {
+            document.getElementById('header-clock').textContent = new Date().toLocaleTimeString('ar-SA', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+
+        function getTodayStr() {
+            return new Date().toISOString().split('T')[0];
+        }
+
+        function formatTime(d) {
+            return d.toLocaleTimeString('ar-SA', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        // ===== GENERATE SLOTS =====
+        function generateSlots(doctorId, dateStr) {
+            const slots = [];
+            const base = new Date(dateStr + 'T13:00:00');
+            for (let i = 0; i < 15; i++) {
+                const s = new Date(base.getTime() + i * 20 * 60000);
+                const e = new Date(s.getTime() + 20 * 60000);
+                slots.push({
+                    id: doctorId + '_' + dateStr + '_' + i,
+                    doctorId: doctorId,
+                    date: dateStr,
+                    startTime: formatTime(s),
+                    endTime: formatTime(e),
+                    status: 'available',
+                    patientName: '',
+                    patientPhone: '',
+                    patientNotes: '',
+                    bookedAt: ''
+                });
+            }
+            return slots;
+        }
+
+        // ===== DOCTOR MANAGEMENT =====
+        function quickAddDoctor() {
+            const name = document.getElementById('qa-name').value.trim();
+            const spec = document.getElementById('qa-spec').value.trim();
+            if (!name || !spec) {
+                showToast('❌ أدخل اسم الطبيب والتخصص');
+                return;
+            }
+
+            const doc = {
+                id: 'd_' + Date.now(),
+                name: name,
+                specialty: spec,
+                createdAt: new Date().toISOString()
+            };
+            doctors.push(doc);
+            const today = getTodayStr();
+            appointments.push(...generateSlots(doc.id, today));
+            saveData();
+
+            document.getElementById('qa-name').value = '';
+            document.getElementById('qa-spec').value = '';
+            showToast('✅ تم تسجيل الطبيب وتوليد 15 موعداً لهذا اليوم');
+            renderAll();
+        }
+
+        function deleteDoctor(id) {
+            if (!confirm('هل أنت متأكد من حذف الطبيب وجميع مواعيده؟')) return;
+            doctors = doctors.filter(d => d.id !== id);
+            appointments = appointments.filter(a => a.doctorId !== id);
+            saveData();
+            renderAll();
+            showToast('🗑️ تم حذف الطبيب');
+        }
+
+        // ===== FAST BOOKING =====
+        function loadAvailableSlots() {
+            const docId = document.getElementById('fb-doctor').value;
+            const container = document.getElementById('fb-slots');
+            const today = getTodayStr();
+            selectedSlotId = null;
+            document.getElementById('fb-preview').classList.add('hidden');
+
+            if (!docId) {
+                container.innerHTML = '<div class="col-span-3 text-center text-slate-400 text-sm py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">اختر طبيباً أولاً لعرض المواعيد</div>';
+                return;
+            }
+
+            const slots = appointments.filter(a => a.doctorId === docId && a.date === today && a.status === 'available');
+            if (slots.length === 0) {
+                container.innerHTML = '<div class="col-span-3 text-center text-orange-600 text-sm py-6 bg-orange-50 rounded-xl border-2 border-dashed border-orange-200 font-bold">⚠️ لا توجد مواعيد متاحة لهذا الطبيب اليوم</div>';
+                return;
+            }
+
+            container.innerHTML = slots.map(s => `
+            <button onclick="selectSlot('${s.id}')" id="slot-btn-${s.id}" class="slot-btn py-2.5 px-1 bg-white border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 transition text-center shadow-sm">
+                ${s.startTime}
+            </button>
+        `).join('');
+        }
+
+        function selectSlot(id) {
+            selectedSlotId = id;
+            document.querySelectorAll('.slot-btn').forEach(b => {
+                b.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
+                b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+            });
+            const btn = document.getElementById('slot-btn-' + id);
+            btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+            btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
+
+            const appt = appointments.find(a => a.id === id);
+            const doc = doctors.find(d => d.id === appt.doctorId);
+            document.getElementById('fb-preview-text').innerHTML = `${doc.name} <span class="text-emerald-600">|</span> ${appt.startTime} - ${appt.endTime}`;
+            document.getElementById('fb-preview').classList.remove('hidden');
+        }
+
+        function confirmFastBooking() {
+            const patient = document.getElementById('fb-patient').value.trim();
+            const phone = document.getElementById('fb-phone').value.trim();
+            const notes = document.getElementById('fb-notes').value.trim();
+
+            if (!patient) {
+                showToast('❌ أدخل اسم المريض');
+                document.getElementById('fb-patient').focus();
+                return;
+            }
+            if (!selectedSlotId) {
+                showToast('❌ اختر موعداً متاحاً');
+                return;
+            }
+
+            const appt = appointments.find(a => a.id === selectedSlotId);
+            appt.status = 'booked';
+            appt.patientName = patient;
+            appt.patientPhone = phone;
+            appt.patientNotes = notes;
+            appt.bookedAt = new Date().toISOString();
+
+            saveData();
+            showToast('✅ تم الحجز بنجاح!');
+
+            document.getElementById('fb-patient').value = '';
+            document.getElementById('fb-phone').value = '';
+            document.getElementById('fb-notes').value = '';
+            document.getElementById('fb-preview').classList.add('hidden');
+            selectedSlotId = null;
+            loadAvailableSlots();
+            renderAll();
+        }
+
+        function quickRebook(name, phone) {
+            document.getElementById('fb-patient').value = name;
+            document.getElementById('fb-phone').value = phone || '';
+            document.getElementById('fb-patient').focus();
+            showToast('🔄 تم تعبئة بيانات المريض، اختر الطبيب والموعد');
+        }
+
+        // ===== RENDERING =====
+        function renderAll() {
+            renderSidebarDoctors();
+            renderStats();
+            renderDoctorSelect();
+            renderRecentPatients();
+            renderTodayTimeline();
+            renderLiveQueue();
+            renderAllAppointments();
+        }
+
+        function renderSidebarDoctors() {
+            const el = document.getElementById('sidebar-doctors');
+            if (doctors.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">لا يوجد أطباء مسجلون</div>';
+                return;
+            }
+            const today = getTodayStr();
+            el.innerHTML = doctors.map(d => {
+                const appts = appointments.filter(a => a.doctorId === d.id && a.date === today);
+                const booked = appts.filter(a => a.status === 'booked').length;
+                const full = booked === appts.length && appts.length > 0;
+                return `
+                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-emerald-300 transition cursor-pointer group" onclick="selectDoctorInFastBooking('${d.id}')">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold">${d.name.charAt(0)}</div>
+                        <div>
+                            <div class="text-sm font-bold text-slate-700">${d.name}</div>
+                            <div class="text-[11px] text-slate-400">${d.specialty}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-bold ${full ? 'text-red-500' : 'text-emerald-600'} px-2 py-0.5 bg-white rounded-full border border-slate-200">${booked}/${appts.length}</span>
+                        <button onclick="event.stopPropagation(); deleteDoctor('${d.id}')" class="text-slate-300 hover:text-red-500 transition text-xs w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50">🗑</button>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        function selectDoctorInFastBooking(docId) {
+            document.getElementById('fb-doctor').value = docId;
+            loadAvailableSlots();
+        }
+
+        function renderStats() {
+            const today = getTodayStr();
+            const appts = appointments.filter(a => a.date === today);
+            document.getElementById('mini-total').textContent = appts.length;
+            document.getElementById('mini-booked').textContent = appts.filter(a => a.status === 'booked').length;
+            document.getElementById('mini-free').textContent = appts.filter(a => a.status === 'available').length;
+        }
+
+        function renderDoctorSelect() {
+            const sel = document.getElementById('fb-doctor');
+            const val = sel.value;
+            sel.innerHTML = '<option value="">-- اختر الطبيب --</option>' +
+                doctors.map(d => `<option value="${d.id}">${d.name} — ${d.specialty}</option>`).join('');
+            sel.value = val;
+
+            const allFilter = document.getElementById('all-filter-doc');
+            const allVal = allFilter.value;
+            allFilter.innerHTML = '<option value="all">كل الأطباء</option>' +
+                doctors.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
+            allFilter.value = allVal;
+        }
+
+        function renderRecentPatients() {
+            const el = document.getElementById('recent-patients');
+            const booked = appointments.filter(a => a.status === 'booked' && a.patientName);
+            const unique = [];
+            const seen = new Set();
+            for (let i = booked.length - 1; i >= 0 && unique.length < 12; i--) {
+                const key = booked[i].patientName + '|' + booked[i].patientPhone;
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push(booked[i]);
+                }
+            }
+            if (unique.length === 0) {
+                el.innerHTML = '<div class="text-slate-400 text-sm py-2">لا يوجد مرضى مسجلون بعد</div>';
+                return;
+            }
+            el.innerHTML = unique.map(p => {
+                const safeName = p.patientName.replace(/'/g, "\'");
+                return `
+                <button onclick="quickRebook('${safeName}', '${p.patientPhone || ''}')" 
+                    class="px-3 py-2 bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 hover:border-emerald-300 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 transition shadow-sm">
+                    ${p.patientName}
+                </button>
+            `;
+            }).join('');
+        }
+
+        function renderTodayTimeline() {
+            const el = document.getElementById('today-timeline');
+            const today = getTodayStr();
+            const todayAppts = appointments.filter(a => a.date === today);
+            if (todayAppts.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-8">لا يوجد أطباء مسجلين. أضف طبيباً من القائمة اليسرى.</div>';
+                return;
+            }
+            const byDoc = {};
+            todayAppts.forEach(a => {
+                if (!byDoc[a.doctorId]) byDoc[a.doctorId] = [];
+                byDoc[a.doctorId].push(a);
+            });
+
+            el.innerHTML = Object.keys(byDoc).map(docId => {
+                        const doc = doctors.find(d => d.id === docId);
+                        if (!doc) return '';
+                        const list = byDoc[docId].sort((a, b) => a.startTime.localeCompare(b.startTime));
+                        return `
+                <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition">
+                    <div class="bg-gradient-to-l from-slate-100 to-white px-3 py-2.5 flex items-center justify-between border-b border-slate-100">
+                        <span class="font-bold text-sm text-slate-700">${doc.name}</span>
+                        <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">${doc.specialty}</span>
+                    </div>
+                    <div class="p-2.5 grid grid-cols-5 gap-1.5">
+                        ${list.map(a => `
+                            <div class="${a.status === 'booked' ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-600'} border rounded-lg p-1.5 text-center text-[11px] font-bold cursor-pointer hover:shadow-sm transition relative group min-h-[50px] flex flex-col items-center justify-center">
+                                <div>${a.startTime}</div>
+                                ${a.status === 'booked' ? `<div class="truncate text-[9px] mt-0.5 max-w-full px-0.5">${a.patientName}</div>` : '<div class="text-[9px] text-slate-400 font-normal">متاح</div>'}
+                                ${a.status === 'available' ? `<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-emerald-500/90 rounded-lg transition cursor-pointer" onclick="fastBookSlot('${a.id}')"><span class="text-white text-[10px] font-bold">حجز</span></div>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function fastBookSlot(id) {
+        const a = appointments.find(x => x.id === id);
+        document.getElementById('fb-doctor').value = a.doctorId;
+        loadAvailableSlots();
+        setTimeout(() => selectSlot(id), 50);
+        showToast('📝 أكمل بيانات المريض ثم اضغط تأكيد');
+    }
+
+    function renderLiveQueue() {
+        const el = document.getElementById('live-queue');
+        const today = getTodayStr();
+        const booked = appointments.filter(a => a.date === today && a.status === 'booked').sort((a,b) => a.startTime.localeCompare(b.startTime));
+        if (booked.length === 0) {
+            el.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">لا يوجد مرضى في الطابور</div>';
+            return;
+        }
+        el.innerHTML = booked.map((a, idx) => {
+            const doc = doctors.find(d => d.id === a.doctorId);
+            return `
+                <div class="flex items-center gap-2.5 p-2.5 bg-white border border-slate-200 rounded-lg hover:border-emerald-300 transition shadow-sm">
+                    <div class="w-7 h-7 bg-slate-800 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">${idx + 1}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="text-sm font-bold text-slate-700 truncate">${a.patientName}</div>
+                        <div class="text-[10px] text-slate-400">${doc ? doc.name : ''} | ${a.startTime}</div>
+                    </div>
+                    <button onclick="cancelBooking('${a.id}')" class="text-slate-300 hover:text-red-500 text-xs w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-50 transition" title="إلغاء الحجز">✕</button>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function cancelBooking(id) {
+        if (!confirm('هل تريد إلغاء هذا الحجز؟')) return;
+        const a = appointments.find(x => x.id === id);
+        if (a) {
+            a.status = 'available';
+            a.patientName = '';
+            a.patientPhone = '';
+            a.patientNotes = '';
+            a.bookedAt = '';
+            saveData();
+            renderAll();
+            showToast('✅ تم إلغاء الحجز');
+        }
+    }
+
+    // ===== MODAL =====
+    function showAllAppointments() {
+        document.getElementById('modal-all').classList.remove('hidden');
+        renderAllAppointments();
+    }
+
+    function closeModal() {
+        document.getElementById('modal-all').classList.add('hidden');
+    }
+
+    function renderAllAppointments() {
+        const el = document.getElementById('all-appointments-list');
+        const docF = document.getElementById('all-filter-doc').value;
+        const statusF = document.getElementById('all-filter-status').value;
+        let list = [...appointments];
+        if (docF !== 'all') list = list.filter(a => a.doctorId === docF);
+        if (statusF !== 'all') list = list.filter(a => a.status === statusF);
+        list.sort((a,b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
+
+        if (list.length === 0) { 
+            el.innerHTML = '<div class="text-center text-slate-400 py-8 text-sm">لا توجد مواعيد مطابقة</div>'; 
+            return; 
+        }
+
+        el.innerHTML = list.map(a => {
+            const doc = doctors.find(d => d.id === a.doctorId);
+            return `
+                <div class="flex items-center gap-3 p-3 rounded-lg ${a.status === 'booked' ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-slate-200'} hover:shadow-md transition">
+                    <div class="w-8 h-8 rounded-full ${a.status === 'booked' ? 'bg-emerald-500' : 'bg-slate-300'} flex items-center justify-center text-white text-xs font-bold shrink-0">${a.status === 'booked' ? '✓' : '○'}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-bold text-slate-800 text-sm">${a.startTime} - ${a.endTime}</span>
+                            <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${a.date}</span>
+                        </div>
+                        <div class="text-xs text-emerald-600 font-medium">${doc ? doc.name : 'غير معروف'} | ${doc ? doc.specialty : ''}</div>
+                        ${a.status === 'booked' ? `<div class="text-xs text-slate-600 mt-0.5">👤 ${a.patientName} ${a.patientPhone ? '| 📞 ' + a.patientPhone : ''}</div>` : ''}
+                    </div>
+                    <div class="shrink-0">
+                        ${a.status === 'available' 
+                            ? `<button onclick="fastBookFromModal('${a.id}')" class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 font-bold transition shadow">حجز</button>`
+                            : `<button onclick="cancelBooking('${a.id}')" class="px-3 py-1.5 bg-red-100 text-red-600 text-xs rounded-lg hover:bg-red-200 font-bold transition">إلغاء</button>`
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function fastBookFromModal(id) {
+        closeModal();
+        const a = appointments.find(x => x.id === id);
+        document.getElementById('fb-doctor').value = a.doctorId;
+        loadAvailableSlots();
+        setTimeout(() => selectSlot(id), 100);
+        showToast('📝 أكمل بيانات المريض ثم اضغط تأكيد الحجز');
+    }
+
+    // ===== EXPORT =====
+    function exportToday() {
+        const today = getTodayStr();
+        const list = appointments.filter(a => a.date === today).sort((a,b) => a.startTime.localeCompare(b.startTime));
+        let csv = 'الطبيب,التخصص,التاريخ,من,إلى,حالة,المريض,هاتف,ملاحظات\n';
+        list.forEach(a => {
+            const doc = doctors.find(d => d.id === a.doctorId);
+            csv += `"${doc ? doc.name : ''}","${doc ? doc.specialty : ''}","${a.date}","${a.startTime}","${a.endTime}","${a.status === 'booked' ? 'محجوز' : 'متاح'}","${a.patientName}","${a.patientPhone}","${a.patientNotes}"\n`;
+        });
+        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `مواعيد_${today}.csv`;
+        link.click();
+        showToast('📥 تم تصدير الجدول كملف Excel');
+    }
+
+    // ===== UTILS =====
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.remove('hidden');
+        t.classList.add('toast-anim');
+        setTimeout(() => { t.classList.add('hidden'); t.classList.remove('toast-anim'); }, 3000);
+    }
+
+    function clearAllData() {
+        if (!confirm('هل أنت متأكد من مسح كل الأطباء والمواعيد؟\n\n⚠️ لا يمكن التراجع عن هذا الإجراء!')) return;
+        doctors = []; 
+        appointments = []; 
+        saveData(); 
+        renderAll(); 
+        showToast('🗑️ تم مسح كل البيانات');
+    }
+
+    function saveData() {
+        localStorage.setItem('clinic_doctors', JSON.stringify(doctors));
+        localStorage.setItem('clinic_appointments', JSON.stringify(appointments));
+    }
+
+    // Close modal on outside click
+    document.getElementById('modal-all').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ===== START =====
+    init();
+    </script>
+</body>
+
+</html>
