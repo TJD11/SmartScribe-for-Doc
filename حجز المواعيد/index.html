@@ -68,20 +68,20 @@
 <body class="bg-slate-50 min-h-screen">
 
     <!-- Top Bar -->
-    <div class="bg-slate-900 text-white p-3 flex items-center justify-between shadow-lg sticky top-0 z-40">
-        <div class="flex items-center gap-3">
+    <div class="bg-slate-900 text-white p-3 flex flex-wrap items-center justify-between gap-2 shadow-lg sticky top-0 z-40">
+        <div class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center text-xl shadow-inner">🏥</div>
-            <div>
-                <h1 class="font-bold text-lg leading-tight">نظام حجز مواعيد العيادات</h1>
+            <div class="min-w-0">
+                <h1 class="font-bold text-base sm:text-lg leading-tight truncate">نظام حجز مواعيد العيادات</h1>
                 <p class="text-slate-400 text-xs">وضع الاستقبال السريع </p>
             </div>
         </div>
-        <div class="flex items-center gap-3">
-            <div class="bg-slate-800 px-3 py-1.5 rounded-lg text-sm border border-slate-700">
+        <div class="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+            <div class="bg-slate-800 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm border border-slate-700">
                 <span class="text-slate-400">📅</span>
                 <span id="header-date" class="mr-1"></span>
             </div>
-            <div class="bg-emerald-600 px-3 py-1.5 rounded-lg text-sm font-bold shadow-lg border border-emerald-500">
+            <div class="bg-emerald-600 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold shadow-lg border border-emerald-500">
                 <span id="header-clock">--:--</span>
             </div>
         </div>
@@ -100,8 +100,12 @@
                 <div class="space-y-2">
                     <input id="qa-name" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" placeholder="اسم الطبيب">
                     <input id="qa-spec" type="text" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition" placeholder="التخصص">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1">📆 تاريخ التوليد</label>
+                        <input id="qa-date" type="date" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
+                    </div>
                     <button onclick="quickAddDoctor()" class="w-full py-2.5 bg-emerald-500 text-white rounded-lg text-sm font-bold hover:bg-emerald-600 transition shadow-md active:scale-[0.98]">
-                        تسجيل + توليد مواعيد اليوم
+                        تسجيل + توليد مواعيد التاريخ المحدد
                     </button>
                 </div>
             </div>
@@ -120,7 +124,7 @@
             <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl shadow-lg p-4 text-white relative overflow-hidden">
                 <div class="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-8 -mt-8"></div>
                 <div class="relative z-10">
-                    <div class="text-xs opacity-80 mb-1">مواعيد اليوم</div>
+                    <div class="text-xs opacity-80 mb-1" id="mini-title">مواعيد التاريخ المحدد</div>
                     <div class="text-4xl font-extrabold" id="mini-total">0</div>
                     <div class="flex justify-between mt-3 text-sm">
                         <span class="bg-white/20 px-2 py-0.5 rounded">محجوز: <strong id="mini-booked">0</strong></span>
@@ -169,9 +173,13 @@
                             </select>
                         </div>
                         <div>
+                            <label class="block text-xs font-bold text-slate-500 mb-1.5">📆 اختر التاريخ</label>
+                            <input id="fb-date" type="date" onchange="onBookingDateChanged()" class="w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl text-lg focus:ring-2 focus:ring-emerald-500 outline-none transition">
+                        </div>
+                        <div>
                             <label class="block text-xs font-bold text-slate-500 mb-1.5">🕐 اختر الموعد المتاح</label>
-                            <div id="fb-slots" class="grid grid-cols-3 gap-2 max-h-[150px] overflow-y-auto p-1">
-                                <div class="col-span-3 text-center text-slate-400 text-sm py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
+                            <div id="fb-slots" class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-[150px] overflow-y-auto p-1">
+                                <div class="col-span-2 sm:col-span-3 text-center text-slate-400 text-sm py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">
                                     اختر طبيباً أولاً لعرض المواعيد
                                 </div>
                             </div>
@@ -180,12 +188,12 @@
                 </div>
 
                 <!-- Selected Slot Preview -->
-                <div id="fb-preview" class="hidden mt-5 bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 flex items-center justify-between">
+                <div id="fb-preview" class="hidden mt-5 bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:justify-between">
                     <div>
                         <div class="text-xs text-emerald-600 font-bold mb-0.5">الموعد المختار</div>
                         <div class="text-emerald-800 font-bold text-lg" id="fb-preview-text"></div>
                     </div>
-                    <button onclick="confirmFastBooking()" class="px-8 py-3 bg-emerald-500 text-white rounded-xl font-bold text-lg hover:bg-emerald-600 transition shadow-lg hover:shadow-xl active:scale-[0.97]">
+                    <button onclick="confirmFastBooking()" class="w-full sm:w-auto px-6 sm:px-8 py-3 bg-emerald-500 text-white rounded-xl font-bold text-base sm:text-lg hover:bg-emerald-600 transition shadow-lg hover:shadow-xl active:scale-[0.97]">
                         ✅ تأكيد الحجز الفوري
                     </button>
                 </div>
@@ -207,7 +215,7 @@
             <!-- Today's Timeline -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 hover:shadow-md transition">
                 <h3 class="font-bold text-slate-700 mb-4 text-sm flex items-center gap-2">
-                    <span>📋</span> جدول مواعيد اليوم - نظرة سريعة
+                    <span>📋</span> <span id="timeline-title">جدول المواعيد للتاريخ المحدد - نظرة سريعة</span>
                 </h3>
                 <div id="today-timeline" class="space-y-3 max-h-[350px] overflow-y-auto pr-1">
                     <div class="text-center text-slate-400 text-sm py-8">لا يوجد أطباء مسجلين. أضف طبيباً من القائمة اليسرى.</div>
@@ -235,8 +243,8 @@
                     <button onclick="showAllAppointments()" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-700 font-bold transition text-right flex items-center gap-2">
                         <span>📅</span> عرض كل المواعيد
                     </button>
-                    <button onclick="exportToday()" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-700 font-bold transition text-right flex items-center gap-2">
-                        <span>📥</span> تصدير جدول اليوم (Excel)
+                    <button onclick="exportSelectedDate()" class="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm text-slate-700 font-bold transition text-right flex items-center gap-2">
+                        <span>📥</span> تصدير جدول التاريخ المحدد (Excel)
                     </button>
                     <button onclick="clearAllData()" class="w-full py-2.5 px-3 bg-red-50 hover:bg-red-100 rounded-lg text-sm text-red-600 font-bold transition text-right flex items-center gap-2">
                         <span>🗑️</span> مسح كل البيانات
@@ -244,11 +252,32 @@
                 </div>
             </div>
 
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 hover:shadow-md transition">
+                <h3 class="font-bold text-slate-700 mb-3 text-sm">🕒 إعدادات المواعيد</h3>
+                <div class="space-y-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">من</label>
+                            <input id="set-work-start" type="time" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 mb-1">إلى</label>
+                            <input id="set-work-end" type="time" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] text-slate-500 mb-1">مدة الموعد (بالدقائق)</label>
+                        <input id="set-slot-duration" type="number" min="5" max="180" step="5" class="w-full px-2 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <button onclick="saveScheduleSettings()" class="w-full py-2.5 bg-slate-800 text-white rounded-lg text-sm font-bold hover:bg-slate-900 transition">حفظ الإعدادات</button>
+                </div>
+            </div>
+
             <!-- Info Box -->
             <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
                 <h4 class="font-bold text-blue-800 text-xs mb-1">💡 تلميح</h4>
                 <p class="text-blue-600 text-xs leading-relaxed">
-                    المواعيد تُولد تلقائياً من 1 ظهراً حتى 6 مساءً (كل 20 دقيقة). عند إضافة طبيب جديد، يُنشأ جدوله فوراً.
+                    يمكنك اختيار تاريخ مختلف، وضبط ساعات العمل ومدة الموعد، ثم توليد جدول الطبيب للتاريخ المطلوب بدون تكرار.
                 </p>
             </div>
         </div>
@@ -262,7 +291,7 @@
                 <button onclick="closeModal()" class="w-8 h-8 bg-slate-200 rounded-full hover:bg-slate-300 transition font-bold text-slate-600">✕</button>
             </div>
             <div class="p-4 overflow-y-auto flex-1">
-                <div class="flex gap-2 mb-4 sticky top-0 bg-white pb-2 border-b border-slate-100">
+                <div class="flex flex-wrap gap-2 mb-4 sticky top-0 bg-white pb-2 border-b border-slate-100">
                     <select id="all-filter-doc" onchange="renderAllAppointments()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                         <option value="all">كل الأطباء</option>
                     </select>
@@ -271,6 +300,7 @@
                         <option value="available">🟢 متاح</option>
                         <option value="booked">✅ محجوز</option>
                     </select>
+                    <input id="all-filter-date" type="date" onchange="renderAllAppointments()" class="px-3 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
                 <div id="all-appointments-list" class="space-y-2"></div>
             </div>
@@ -281,12 +311,16 @@
     <div id="toast" class="hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl z-50 text-sm font-bold"></div>
 
     <script>
-        // ===== DATA =====
-        let doctors = JSON.parse(localStorage.getItem('clinic_doctors') || '[]');
-        let appointments = JSON.parse(localStorage.getItem('clinic_appointments') || '[]');
+        const DOCTORS_KEY = 'clinic_doctors';
+        const APPOINTMENTS_KEY = 'clinic_appointments';
+        const SETTINGS_KEY = 'clinic_settings';
+        const DEFAULT_SETTINGS = { workStart: '13:00', workEnd: '18:00', slotDuration: 20 };
+
+        let doctors = safeParseArray(DOCTORS_KEY).filter(d => d && d.id && d.name && d.specialty);
+        let appointments = safeParseArray(APPOINTMENTS_KEY).map(normalizeAppointment).filter(Boolean);
+        let settings = loadSettings();
         let selectedSlotId = null;
 
-        // ===== INIT =====
         function init() {
             updateClock();
             setInterval(updateClock, 1000);
@@ -296,7 +330,111 @@
                 month: 'long',
                 day: 'numeric'
             });
+            const today = getTodayStr();
+            document.getElementById('fb-date').value = today;
+            document.getElementById('qa-date').value = today;
+            document.getElementById('all-filter-date').value = '';
+            applySettingsToInputs();
+            saveData();
             renderAll();
+        }
+
+        function safeParseArray(key) {
+            try {
+                const raw = JSON.parse(localStorage.getItem(key) || '[]');
+                return Array.isArray(raw) ? raw : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function sanitizeText(v) {
+            return typeof v === 'string' ? v.trim() : '';
+        }
+
+        function isValidDate(v) {
+            return /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+        }
+
+        function normalizeAppointment(a) {
+            if (!a || typeof a !== 'object') return null;
+            if (!a.id || !a.doctorId || !isValidDate(a.date)) return null;
+            const status = a.status === 'booked' ? 'booked' : 'available';
+            return {
+                id: String(a.id),
+                doctorId: String(a.doctorId),
+                date: a.date,
+                startTime: sanitizeText(a.startTime),
+                endTime: sanitizeText(a.endTime),
+                status,
+                patientName: status === 'booked' ? sanitizeText(a.patientName) : '',
+                patientPhone: status === 'booked' ? sanitizeText(a.patientPhone) : '',
+                patientNotes: status === 'booked' ? sanitizeText(a.patientNotes) : '',
+                bookedAt: status === 'booked' ? sanitizeText(a.bookedAt) : ''
+            };
+        }
+
+        function isValidTime(v) {
+            return /^([01]\d|2[0-3]):([0-5]\d)$/.test(v || '');
+        }
+
+        function timeToMinutes(timeStr) {
+            const [h, m] = timeStr.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function minutesToTime(minutes) {
+            const h = String(Math.floor(minutes / 60)).padStart(2, '0');
+            const m = String(minutes % 60).padStart(2, '0');
+            return `${h}:${m}`;
+        }
+
+        function loadSettings() {
+            let raw = {};
+            try {
+                raw = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') || {};
+            } catch (e) {
+                raw = {};
+            }
+            const workStart = isValidTime(raw.workStart) ? raw.workStart : DEFAULT_SETTINGS.workStart;
+            const workEnd = isValidTime(raw.workEnd) ? raw.workEnd : DEFAULT_SETTINGS.workEnd;
+            const slotDuration = Number.isInteger(raw.slotDuration) ? raw.slotDuration : parseInt(raw.slotDuration, 10);
+            const safeDuration = Number.isInteger(slotDuration) && slotDuration >= 5 && slotDuration <= 180 ? slotDuration : DEFAULT_SETTINGS.slotDuration;
+            const startMin = timeToMinutes(workStart);
+            const endMin = timeToMinutes(workEnd);
+            if (endMin <= startMin) return { ...DEFAULT_SETTINGS };
+            return { workStart, workEnd, slotDuration: safeDuration };
+        }
+
+        function applySettingsToInputs() {
+            document.getElementById('set-work-start').value = settings.workStart;
+            document.getElementById('set-work-end').value = settings.workEnd;
+            document.getElementById('set-slot-duration').value = settings.slotDuration;
+        }
+
+        function saveSettings() {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        }
+
+        function saveScheduleSettings() {
+            const workStart = document.getElementById('set-work-start').value;
+            const workEnd = document.getElementById('set-work-end').value;
+            const slotDuration = parseInt(document.getElementById('set-slot-duration').value, 10);
+            if (!isValidTime(workStart) || !isValidTime(workEnd)) {
+                showToast('❌ أدخل وقت بداية ونهاية صحيحين');
+                return;
+            }
+            if (!Number.isInteger(slotDuration) || slotDuration < 5 || slotDuration > 180) {
+                showToast('❌ مدة الموعد يجب أن تكون بين 5 و 180 دقيقة');
+                return;
+            }
+            if (timeToMinutes(workEnd) <= timeToMinutes(workStart)) {
+                showToast('❌ وقت النهاية يجب أن يكون بعد وقت البداية');
+                return;
+            }
+            settings = { workStart, workEnd, slotDuration };
+            saveSettings();
+            showToast('✅ تم حفظ إعدادات المواعيد');
         }
 
         function updateClock() {
@@ -308,30 +446,46 @@
         }
 
         function getTodayStr() {
-            return new Date().toISOString().split('T')[0];
+            const d = new Date();
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
         }
 
-        function formatTime(d) {
-            return d.toLocaleTimeString('ar-SA', {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
+        function getSelectedDate() {
+            const dateStr = document.getElementById('fb-date').value;
+            return isValidDate(dateStr) ? dateStr : '';
         }
 
-        // ===== GENERATE SLOTS =====
+        function getSlotOrder(appt) {
+            const byId = String(appt.id).match(/_(\d+)$/);
+            if (byId) return parseInt(byId[1], 10);
+            const byTime = String(appt.startTime).match(/(\d{1,2}):(\d{2})/);
+            if (byTime) return parseInt(byTime[1], 10) * 60 + parseInt(byTime[2], 10);
+            return 99999;
+        }
+
+        function compareAppointments(a, b) {
+            if (a.date !== b.date) return a.date.localeCompare(b.date);
+            return getSlotOrder(a) - getSlotOrder(b);
+        }
+
         function generateSlots(doctorId, dateStr) {
             const slots = [];
-            const base = new Date(dateStr + 'T13:00:00');
-            for (let i = 0; i < 15; i++) {
-                const s = new Date(base.getTime() + i * 20 * 60000);
-                const e = new Date(s.getTime() + 20 * 60000);
+            const start = timeToMinutes(settings.workStart);
+            const end = timeToMinutes(settings.workEnd);
+            const duration = settings.slotDuration;
+            const count = Math.floor((end - start) / duration);
+            for (let i = 0; i < count; i++) {
+                const s = start + i * duration;
+                const e = s + duration;
                 slots.push({
                     id: doctorId + '_' + dateStr + '_' + i,
                     doctorId: doctorId,
                     date: dateStr,
-                    startTime: formatTime(s),
-                    endTime: formatTime(e),
+                    startTime: minutesToTime(s),
+                    endTime: minutesToTime(e),
                     status: 'available',
                     patientName: '',
                     patientPhone: '',
@@ -342,12 +496,31 @@
             return slots;
         }
 
-        // ===== DOCTOR MANAGEMENT =====
+        function ensureDoctorSlots(doctorId, dateStr, showToastIfExists) {
+            if (!isValidDate(dateStr)) {
+                showToast('❌ اختر تاريخاً صحيحاً أولاً');
+                return false;
+            }
+            const exists = appointments.some(a => a.doctorId === doctorId && a.date === dateStr);
+            if (exists) {
+                if (showToastIfExists) showToast('ℹ️ مواعيد هذا الطبيب لهذا التاريخ موجودة مسبقاً');
+                return false;
+            }
+            appointments.push(...generateSlots(doctorId, dateStr));
+            saveData();
+            return true;
+        }
+
         function quickAddDoctor() {
             const name = document.getElementById('qa-name').value.trim();
             const spec = document.getElementById('qa-spec').value.trim();
+            const dateStr = document.getElementById('qa-date').value || getSelectedDate() || getTodayStr();
             if (!name || !spec) {
                 showToast('❌ أدخل اسم الطبيب والتخصص');
+                return;
+            }
+            if (!isValidDate(dateStr)) {
+                showToast('❌ اختر تاريخ توليد صالح');
                 return;
             }
 
@@ -358,14 +531,26 @@
                 createdAt: new Date().toISOString()
             };
             doctors.push(doc);
-            const today = getTodayStr();
-            appointments.push(...generateSlots(doc.id, today));
+            ensureDoctorSlots(doc.id, dateStr, false);
             saveData();
 
             document.getElementById('qa-name').value = '';
             document.getElementById('qa-spec').value = '';
-            showToast('✅ تم تسجيل الطبيب وتوليد 15 موعداً لهذا اليوم');
+            showToast('✅ تم تسجيل الطبيب وتوليد مواعيد التاريخ المحدد');
             renderAll();
+        }
+
+        function generateForDoctor(id) {
+            const dateStr = getSelectedDate();
+            if (!dateStr) {
+                showToast('❌ اختر تاريخاً أولاً');
+                return;
+            }
+            const created = ensureDoctorSlots(id, dateStr, true);
+            if (created) {
+                showToast('✅ تم توليد مواعيد الطبيب للتاريخ المحدد');
+                renderAll();
+            }
         }
 
         function deleteDoctor(id) {
@@ -377,56 +562,88 @@
             showToast('🗑️ تم حذف الطبيب');
         }
 
-        // ===== FAST BOOKING =====
+        function onBookingDateChanged() {
+            selectedSlotId = null;
+            document.getElementById('fb-preview').classList.add('hidden');
+            renderAll();
+            loadAvailableSlots();
+        }
+
         function loadAvailableSlots() {
             const docId = document.getElementById('fb-doctor').value;
+            const dateStr = getSelectedDate();
             const container = document.getElementById('fb-slots');
-            const today = getTodayStr();
             selectedSlotId = null;
             document.getElementById('fb-preview').classList.add('hidden');
 
             if (!docId) {
-                container.innerHTML = '<div class="col-span-3 text-center text-slate-400 text-sm py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">اختر طبيباً أولاً لعرض المواعيد</div>';
+                container.innerHTML = '<div class="col-span-2 sm:col-span-3 text-center text-slate-400 text-sm py-6 bg-slate-50 rounded-xl border-2 border-dashed border-slate-300">اختر طبيباً أولاً لعرض المواعيد</div>';
+                return;
+            }
+            if (!dateStr) {
+                container.innerHTML = '<div class="col-span-2 sm:col-span-3 text-center text-red-600 text-sm py-6 bg-red-50 rounded-xl border-2 border-dashed border-red-200 font-bold">❌ اختر التاريخ أولاً</div>';
                 return;
             }
 
-            const slots = appointments.filter(a => a.doctorId === docId && a.date === today && a.status === 'available');
+            const slots = appointments
+                .filter(a => a.doctorId === docId && a.date === dateStr && a.status === 'available')
+                .sort(compareAppointments);
             if (slots.length === 0) {
-                container.innerHTML = '<div class="col-span-3 text-center text-orange-600 text-sm py-6 bg-orange-50 rounded-xl border-2 border-dashed border-orange-200 font-bold">⚠️ لا توجد مواعيد متاحة لهذا الطبيب اليوم</div>';
+                container.innerHTML = `<div class="col-span-2 sm:col-span-3 text-center text-orange-700 text-sm py-5 bg-orange-50 rounded-xl border-2 border-dashed border-orange-200 font-bold">
+                    ⚠️ لا توجد مواعيد متاحة لهذا الطبيب في هذا التاريخ
+                    <button onclick="generateForDoctor('${docId}')" class="mt-2 block mx-auto px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-xs hover:bg-emerald-600 transition">توليد مواعيد لهذا التاريخ</button>
+                </div>`;
                 return;
             }
 
             container.innerHTML = slots.map(s => `
-            <button onclick="selectSlot('${s.id}')" id="slot-btn-${s.id}" class="slot-btn py-2.5 px-1 bg-white border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 transition text-center shadow-sm">
-                ${s.startTime}
-            </button>
-        `).join('');
+                <button onclick="selectSlot('${s.id}')" id="slot-btn-${s.id}" class="slot-btn py-2.5 px-1 bg-white border-2 border-slate-200 rounded-lg text-sm font-bold text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 transition text-center shadow-sm">
+                    ${s.startTime}
+                </button>
+            `).join('');
         }
 
         function selectSlot(id) {
+            const appt = appointments.find(a => a.id === id);
+            if (!appt || appt.status !== 'available') {
+                showToast('❌ هذا الموعد غير متاح');
+                return;
+            }
             selectedSlotId = id;
             document.querySelectorAll('.slot-btn').forEach(b => {
                 b.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-600');
                 b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
             });
             const btn = document.getElementById('slot-btn-' + id);
+            if (!btn) return;
             btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
             btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-600');
-
-            const appt = appointments.find(a => a.id === id);
             const doc = doctors.find(d => d.id === appt.doctorId);
-            document.getElementById('fb-preview-text').innerHTML = `${doc.name} <span class="text-emerald-600">|</span> ${appt.startTime} - ${appt.endTime}`;
+            document.getElementById('fb-preview-text').innerHTML = `${doc ? doc.name : 'الطبيب'} <span class="text-emerald-600">|</span> ${appt.date} <span class="text-emerald-600">|</span> ${appt.startTime} - ${appt.endTime}`;
             document.getElementById('fb-preview').classList.remove('hidden');
+        }
+
+        function isPhoneValid(phone) {
+            return !phone || /^[0-9+\-\s]{7,15}$/.test(phone);
         }
 
         function confirmFastBooking() {
             const patient = document.getElementById('fb-patient').value.trim();
             const phone = document.getElementById('fb-phone').value.trim();
             const notes = document.getElementById('fb-notes').value.trim();
-
+            const dateStr = getSelectedDate();
+            if (!dateStr) {
+                showToast('❌ اختر تاريخ الحجز أولاً');
+                return;
+            }
             if (!patient) {
                 showToast('❌ أدخل اسم المريض');
                 document.getElementById('fb-patient').focus();
+                return;
+            }
+            if (!isPhoneValid(phone)) {
+                showToast('❌ رقم الجوال غير صالح');
+                document.getElementById('fb-phone').focus();
                 return;
             }
             if (!selectedSlotId) {
@@ -435,6 +652,11 @@
             }
 
             const appt = appointments.find(a => a.id === selectedSlotId);
+            if (!appt || appt.status !== 'available' || appt.date !== dateStr) {
+                showToast('❌ الموعد المختار غير متاح، حدّث القائمة');
+                loadAvailableSlots();
+                return;
+            }
             appt.status = 'booked';
             appt.patientName = patient;
             appt.patientPhone = phone;
@@ -453,22 +675,60 @@
             renderAll();
         }
 
+        function editBooking(id) {
+            const a = appointments.find(x => x.id === id);
+            if (!a || a.status !== 'booked') {
+                showToast('❌ لا يمكن تعديل هذا الموعد');
+                return;
+            }
+            let patientName = prompt('اسم المريض:', a.patientName || '');
+            if (patientName === null) return;
+            patientName = patientName.trim();
+            if (!patientName) {
+                showToast('❌ اسم المريض مطلوب');
+                return;
+            }
+            let patientPhone = prompt('رقم الجوال:', a.patientPhone || '');
+            if (patientPhone === null) return;
+            patientPhone = patientPhone.trim();
+            if (!isPhoneValid(patientPhone)) {
+                showToast('❌ رقم الجوال غير صالح');
+                return;
+            }
+            let patientNotes = prompt('ملاحظات (اختياري):', a.patientNotes || '');
+            if (patientNotes === null) return;
+            patientNotes = patientNotes.trim();
+
+            a.patientName = patientName;
+            a.patientPhone = patientPhone;
+            a.patientNotes = patientNotes;
+            saveData();
+            renderAll();
+            showToast('✅ تم تحديث بيانات الحجز');
+        }
+
         function quickRebook(name, phone) {
             document.getElementById('fb-patient').value = name;
             document.getElementById('fb-phone').value = phone || '';
             document.getElementById('fb-patient').focus();
-            showToast('🔄 تم تعبئة بيانات المريض، اختر الطبيب والموعد');
+            showToast('🔄 تم تعبئة بيانات المريض، اختر الطبيب والتاريخ والموعد');
         }
 
-        // ===== RENDERING =====
         function renderAll() {
             renderSidebarDoctors();
             renderStats();
             renderDoctorSelect();
             renderRecentPatients();
-            renderTodayTimeline();
+            renderTimeline();
             renderLiveQueue();
             renderAllAppointments();
+            updateDateLabels();
+        }
+
+        function updateDateLabels() {
+            const selectedDate = getSelectedDate();
+            document.getElementById('mini-title').textContent = selectedDate ? `مواعيد ${selectedDate}` : 'مواعيد التاريخ المحدد';
+            document.getElementById('timeline-title').textContent = selectedDate ? `جدول المواعيد - ${selectedDate}` : 'جدول المواعيد للتاريخ المحدد - نظرة سريعة';
         }
 
         function renderSidebarDoctors() {
@@ -477,26 +737,29 @@
                 el.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">لا يوجد أطباء مسجلون</div>';
                 return;
             }
-            const today = getTodayStr();
+            const selectedDate = getSelectedDate() || getTodayStr();
             el.innerHTML = doctors.map(d => {
-                const appts = appointments.filter(a => a.doctorId === d.id && a.date === today);
+                const appts = appointments.filter(a => a.doctorId === d.id && a.date === selectedDate);
                 const booked = appts.filter(a => a.status === 'booked').length;
                 const full = booked === appts.length && appts.length > 0;
                 return `
-                <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-emerald-300 transition cursor-pointer group" onclick="selectDoctorInFastBooking('${d.id}')">
-                    <div class="flex items-center gap-2.5">
-                        <div class="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold">${d.name.charAt(0)}</div>
-                        <div>
-                            <div class="text-sm font-bold text-slate-700">${d.name}</div>
-                            <div class="text-[11px] text-slate-400">${d.specialty}</div>
+                    <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-100 hover:border-emerald-300 transition cursor-pointer group" onclick="selectDoctorInFastBooking('${d.id}')">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <div class="w-9 h-9 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-sm font-bold shrink-0">${d.name.charAt(0)}</div>
+                                <div class="min-w-0">
+                                    <div class="text-sm font-bold text-slate-700 truncate">${d.name}</div>
+                                    <div class="text-[11px] text-slate-400 truncate">${d.specialty}</div>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold ${full ? 'text-red-500' : 'text-emerald-600'} px-2 py-0.5 bg-white rounded-full border border-slate-200 shrink-0">${booked}/${appts.length}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 mt-2">
+                            <button onclick="event.stopPropagation(); generateForDoctor('${d.id}')" class="flex-1 py-1 bg-emerald-50 text-emerald-700 rounded text-[11px] font-bold hover:bg-emerald-100 transition">توليد للتاريخ المحدد</button>
+                            <button onclick="event.stopPropagation(); deleteDoctor('${d.id}')" class="px-2 py-1 text-slate-400 hover:text-red-500 rounded hover:bg-red-50 transition text-xs">🗑</button>
                         </div>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs font-bold ${full ? 'text-red-500' : 'text-emerald-600'} px-2 py-0.5 bg-white rounded-full border border-slate-200">${booked}/${appts.length}</span>
-                        <button onclick="event.stopPropagation(); deleteDoctor('${d.id}')" class="text-slate-300 hover:text-red-500 transition text-xs w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-50">🗑</button>
-                    </div>
-                </div>
-            `;
+                `;
             }).join('');
         }
 
@@ -506,8 +769,8 @@
         }
 
         function renderStats() {
-            const today = getTodayStr();
-            const appts = appointments.filter(a => a.date === today);
+            const selectedDate = getSelectedDate();
+            const appts = selectedDate ? appointments.filter(a => a.date === selectedDate) : [];
             document.getElementById('mini-total').textContent = appts.length;
             document.getElementById('mini-booked').textContent = appts.filter(a => a.status === 'booked').length;
             document.getElementById('mini-free').textContent = appts.filter(a => a.status === 'available').length;
@@ -518,13 +781,13 @@
             const val = sel.value;
             sel.innerHTML = '<option value="">-- اختر الطبيب --</option>' +
                 doctors.map(d => `<option value="${d.id}">${d.name} — ${d.specialty}</option>`).join('');
-            sel.value = val;
+            if (doctors.some(d => d.id === val)) sel.value = val;
 
             const allFilter = document.getElementById('all-filter-doc');
             const allVal = allFilter.value;
             allFilter.innerHTML = '<option value="all">كل الأطباء</option>' +
                 doctors.map(d => `<option value="${d.id}">${d.name}</option>`).join('');
-            allFilter.value = allVal;
+            if (allVal === 'all' || doctors.some(d => d.id === allVal)) allFilter.value = allVal;
         }
 
         function renderRecentPatients() {
@@ -544,204 +807,223 @@
                 return;
             }
             el.innerHTML = unique.map(p => {
-                const safeName = p.patientName.replace(/'/g, "\'");
+                const safeName = encodeURIComponent(p.patientName);
+                const safePhone = encodeURIComponent(p.patientPhone || '');
                 return `
-                <button onclick="quickRebook('${safeName}', '${p.patientPhone || ''}')" 
-                    class="px-3 py-2 bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 hover:border-emerald-300 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 transition shadow-sm">
-                    ${p.patientName}
-                </button>
-            `;
+                    <button onclick="quickRebook(decodeURIComponent('${safeName}'), decodeURIComponent('${safePhone}'))"
+                        class="px-3 py-2 bg-slate-100 hover:bg-emerald-100 hover:text-emerald-700 hover:border-emerald-300 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 transition shadow-sm">
+                        ${p.patientName}
+                    </button>
+                `;
             }).join('');
         }
 
-        function renderTodayTimeline() {
+        function renderTimeline() {
             const el = document.getElementById('today-timeline');
-            const today = getTodayStr();
-            const todayAppts = appointments.filter(a => a.date === today);
-            if (todayAppts.length === 0) {
-                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-8">لا يوجد أطباء مسجلين. أضف طبيباً من القائمة اليسرى.</div>';
+            const selectedDate = getSelectedDate();
+            if (!selectedDate) {
+                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-8">اختر تاريخاً لعرض الجدول.</div>';
+                return;
+            }
+            const dayAppts = appointments.filter(a => a.date === selectedDate);
+            if (dayAppts.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-8">لا توجد مواعيد لهذا التاريخ. يمكنك توليد المواعيد من قائمة الأطباء.</div>';
                 return;
             }
             const byDoc = {};
-            todayAppts.forEach(a => {
+            dayAppts.forEach(a => {
                 if (!byDoc[a.doctorId]) byDoc[a.doctorId] = [];
                 byDoc[a.doctorId].push(a);
             });
-
             el.innerHTML = Object.keys(byDoc).map(docId => {
-                        const doc = doctors.find(d => d.id === docId);
-                        if (!doc) return '';
-                        const list = byDoc[docId].sort((a, b) => a.startTime.localeCompare(b.startTime));
-                        return `
-                <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition">
-                    <div class="bg-gradient-to-l from-slate-100 to-white px-3 py-2.5 flex items-center justify-between border-b border-slate-100">
-                        <span class="font-bold text-sm text-slate-700">${doc.name}</span>
-                        <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">${doc.specialty}</span>
+                const doc = doctors.find(d => d.id === docId);
+                if (!doc) return '';
+                const list = byDoc[docId].sort(compareAppointments);
+                return `
+                    <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-md transition">
+                        <div class="bg-gradient-to-l from-slate-100 to-white px-3 py-2.5 flex items-center justify-between border-b border-slate-100">
+                            <span class="font-bold text-sm text-slate-700">${doc.name}</span>
+                            <span class="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-200">${doc.specialty}</span>
+                        </div>
+                        <div class="p-2.5 grid grid-cols-3 sm:grid-cols-5 gap-1.5">
+                            ${list.map(a => `
+                                <div class="${a.status === 'booked' ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-600'} border rounded-lg p-1.5 text-center text-[11px] font-bold cursor-pointer hover:shadow-sm transition relative group min-h-[52px] flex flex-col items-center justify-center">
+                                    <div>${a.startTime}</div>
+                                    ${a.status === 'booked' ? `<div class="truncate text-[9px] mt-0.5 max-w-full px-0.5">${a.patientName}</div>` : '<div class="text-[9px] text-slate-400 font-normal">متاح</div>'}
+                                    ${a.status === 'available' ? `<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-emerald-500/90 rounded-lg transition cursor-pointer" onclick="fastBookSlot('${a.id}')"><span class="text-white text-[10px] font-bold">حجز</span></div>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
                     </div>
-                    <div class="p-2.5 grid grid-cols-5 gap-1.5">
-                        ${list.map(a => `
-                            <div class="${a.status === 'booked' ? 'bg-emerald-100 border-emerald-300 text-emerald-800' : 'bg-white border-slate-200 text-slate-600'} border rounded-lg p-1.5 text-center text-[11px] font-bold cursor-pointer hover:shadow-sm transition relative group min-h-[50px] flex flex-col items-center justify-center">
-                                <div>${a.startTime}</div>
-                                ${a.status === 'booked' ? `<div class="truncate text-[9px] mt-0.5 max-w-full px-0.5">${a.patientName}</div>` : '<div class="text-[9px] text-slate-400 font-normal">متاح</div>'}
-                                ${a.status === 'available' ? `<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-emerald-500/90 rounded-lg transition cursor-pointer" onclick="fastBookSlot('${a.id}')"><span class="text-white text-[10px] font-bold">حجز</span></div>` : ''}
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
-
-    function fastBookSlot(id) {
-        const a = appointments.find(x => x.id === id);
-        document.getElementById('fb-doctor').value = a.doctorId;
-        loadAvailableSlots();
-        setTimeout(() => selectSlot(id), 50);
-        showToast('📝 أكمل بيانات المريض ثم اضغط تأكيد');
-    }
-
-    function renderLiveQueue() {
-        const el = document.getElementById('live-queue');
-        const today = getTodayStr();
-        const booked = appointments.filter(a => a.date === today && a.status === 'booked').sort((a,b) => a.startTime.localeCompare(b.startTime));
-        if (booked.length === 0) {
-            el.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">لا يوجد مرضى في الطابور</div>';
-            return;
+                `;
+            }).join('');
         }
-        el.innerHTML = booked.map((a, idx) => {
-            const doc = doctors.find(d => d.id === a.doctorId);
-            return `
-                <div class="flex items-center gap-2.5 p-2.5 bg-white border border-slate-200 rounded-lg hover:border-emerald-300 transition shadow-sm">
-                    <div class="w-7 h-7 bg-slate-800 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">${idx + 1}</div>
-                    <div class="flex-1 min-w-0">
-                        <div class="text-sm font-bold text-slate-700 truncate">${a.patientName}</div>
-                        <div class="text-[10px] text-slate-400">${doc ? doc.name : ''} | ${a.startTime}</div>
-                    </div>
-                    <button onclick="cancelBooking('${a.id}')" class="text-slate-300 hover:text-red-500 text-xs w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-50 transition" title="إلغاء الحجز">✕</button>
-                </div>
-            `;
-        }).join('');
-    }
 
-    function cancelBooking(id) {
-        if (!confirm('هل تريد إلغاء هذا الحجز؟')) return;
-        const a = appointments.find(x => x.id === id);
-        if (a) {
-            a.status = 'available';
-            a.patientName = '';
-            a.patientPhone = '';
-            a.patientNotes = '';
-            a.bookedAt = '';
+        function fastBookSlot(id) {
+            const a = appointments.find(x => x.id === id);
+            if (!a) return;
+            document.getElementById('fb-date').value = a.date;
+            document.getElementById('fb-doctor').value = a.doctorId;
+            loadAvailableSlots();
+            setTimeout(() => selectSlot(id), 50);
+            showToast('📝 أكمل بيانات المريض ثم اضغط تأكيد');
+        }
+
+        function renderLiveQueue() {
+            const el = document.getElementById('live-queue');
+            const selectedDate = getSelectedDate();
+            if (!selectedDate) {
+                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">اختر تاريخاً لعرض الطابور</div>';
+                return;
+            }
+            const booked = appointments
+                .filter(a => a.date === selectedDate && a.status === 'booked')
+                .sort(compareAppointments);
+            if (booked.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-400 text-sm py-4">لا يوجد مرضى في الطابور لهذا التاريخ</div>';
+                return;
+            }
+            el.innerHTML = booked.map((a, idx) => {
+                const doc = doctors.find(d => d.id === a.doctorId);
+                return `
+                    <div class="flex items-center gap-2.5 p-2.5 bg-white border border-slate-200 rounded-lg hover:border-emerald-300 transition shadow-sm">
+                        <div class="w-7 h-7 bg-slate-800 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0">${idx + 1}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="text-sm font-bold text-slate-700 truncate">${a.patientName}</div>
+                            <div class="text-[10px] text-slate-400">${doc ? doc.name : ''} | ${a.startTime}</div>
+                        </div>
+                        <button onclick="editBooking('${a.id}')" class="text-emerald-500 hover:text-emerald-700 text-xs w-7 h-7 flex items-center justify-center rounded-full hover:bg-emerald-50 transition" title="تعديل">✎</button>
+                        <button onclick="cancelBooking('${a.id}')" class="text-slate-300 hover:text-red-500 text-xs w-7 h-7 flex items-center justify-center rounded-full hover:bg-red-50 transition" title="إلغاء الحجز">✕</button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function cancelBooking(id) {
+            if (!confirm('هل تريد إلغاء هذا الحجز؟')) return;
+            const a = appointments.find(x => x.id === id);
+            if (a) {
+                a.status = 'available';
+                a.patientName = '';
+                a.patientPhone = '';
+                a.patientNotes = '';
+                a.bookedAt = '';
+                saveData();
+                renderAll();
+                showToast('✅ تم إلغاء الحجز');
+            }
+        }
+
+        function showAllAppointments() {
+            document.getElementById('modal-all').classList.remove('hidden');
+            renderAllAppointments();
+        }
+
+        function closeModal() {
+            document.getElementById('modal-all').classList.add('hidden');
+        }
+
+        function renderAllAppointments() {
+            const el = document.getElementById('all-appointments-list');
+            const docF = document.getElementById('all-filter-doc').value;
+            const statusF = document.getElementById('all-filter-status').value;
+            const dateF = document.getElementById('all-filter-date').value;
+            let list = [...appointments];
+            if (docF !== 'all') list = list.filter(a => a.doctorId === docF);
+            if (statusF !== 'all') list = list.filter(a => a.status === statusF);
+            if (isValidDate(dateF)) list = list.filter(a => a.date === dateF);
+            list.sort(compareAppointments);
+
+            if (list.length === 0) {
+                el.innerHTML = '<div class="text-center text-slate-400 py-8 text-sm">لا توجد مواعيد مطابقة</div>';
+                return;
+            }
+
+            el.innerHTML = list.map(a => {
+                const doc = doctors.find(d => d.id === a.doctorId);
+                const actions = a.status === 'available'
+                    ? `<button onclick="fastBookFromModal('${a.id}')" class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 font-bold transition shadow">حجز</button>`
+                    : `<button onclick="editBooking('${a.id}')" class="px-3 py-1.5 bg-blue-100 text-blue-700 text-xs rounded-lg hover:bg-blue-200 font-bold transition">تعديل</button>
+                       <button onclick="cancelBooking('${a.id}')" class="px-3 py-1.5 bg-red-100 text-red-600 text-xs rounded-lg hover:bg-red-200 font-bold transition">إلغاء</button>`;
+                return `
+                    <div class="flex flex-wrap sm:flex-nowrap items-center gap-3 p-3 rounded-lg ${a.status === 'booked' ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-slate-200'} hover:shadow-md transition">
+                        <div class="w-8 h-8 rounded-full ${a.status === 'booked' ? 'bg-emerald-500' : 'bg-slate-300'} flex items-center justify-center text-white text-xs font-bold shrink-0">${a.status === 'booked' ? '✓' : '○'}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-bold text-slate-800 text-sm">${a.startTime} - ${a.endTime}</span>
+                                <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${a.date}</span>
+                            </div>
+                            <div class="text-xs text-emerald-600 font-medium">${doc ? doc.name : 'غير معروف'} | ${doc ? doc.specialty : ''}</div>
+                            ${a.status === 'booked' ? `<div class="text-xs text-slate-600 mt-0.5">👤 ${a.patientName} ${a.patientPhone ? '| 📞 ' + a.patientPhone : ''}${a.patientNotes ? ' | 📝 ' + a.patientNotes : ''}</div>` : ''}
+                        </div>
+                        <div class="shrink-0 flex gap-1.5">${actions}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function fastBookFromModal(id) {
+            closeModal();
+            const a = appointments.find(x => x.id === id);
+            if (!a) return;
+            document.getElementById('fb-date').value = a.date;
+            document.getElementById('fb-doctor').value = a.doctorId;
+            loadAvailableSlots();
+            setTimeout(() => selectSlot(id), 100);
+            showToast('📝 أكمل بيانات المريض ثم اضغط تأكيد الحجز');
+        }
+
+        function exportSelectedDate() {
+            const selectedDate = getSelectedDate();
+            if (!selectedDate) {
+                showToast('❌ اختر تاريخاً للتصدير');
+                return;
+            }
+            const list = appointments.filter(a => a.date === selectedDate).sort(compareAppointments);
+            let csv = 'الطبيب,التخصص,التاريخ,من,إلى,حالة,المريض,هاتف,ملاحظات\n';
+            list.forEach(a => {
+                const doc = doctors.find(d => d.id === a.doctorId);
+                csv += `"${doc ? doc.name : ''}","${doc ? doc.specialty : ''}","${a.date}","${a.startTime}","${a.endTime}","${a.status === 'booked' ? 'محجوز' : 'متاح'}","${a.patientName}","${a.patientPhone}","${a.patientNotes}"\n`;
+            });
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `مواعيد_${selectedDate}.csv`;
+            link.click();
+            showToast('📥 تم تصدير الجدول');
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.remove('hidden');
+            t.classList.add('toast-anim');
+            setTimeout(() => {
+                t.classList.add('hidden');
+                t.classList.remove('toast-anim');
+            }, 3000);
+        }
+
+        function clearAllData() {
+            if (!confirm('هل أنت متأكد من مسح كل الأطباء والمواعيد؟\n\n⚠️ لا يمكن التراجع عن هذا الإجراء!')) return;
+            doctors = [];
+            appointments = [];
             saveData();
             renderAll();
-            showToast('✅ تم إلغاء الحجز');
-        }
-    }
-
-    // ===== MODAL =====
-    function showAllAppointments() {
-        document.getElementById('modal-all').classList.remove('hidden');
-        renderAllAppointments();
-    }
-
-    function closeModal() {
-        document.getElementById('modal-all').classList.add('hidden');
-    }
-
-    function renderAllAppointments() {
-        const el = document.getElementById('all-appointments-list');
-        const docF = document.getElementById('all-filter-doc').value;
-        const statusF = document.getElementById('all-filter-status').value;
-        let list = [...appointments];
-        if (docF !== 'all') list = list.filter(a => a.doctorId === docF);
-        if (statusF !== 'all') list = list.filter(a => a.status === statusF);
-        list.sort((a,b) => (a.date + a.startTime).localeCompare(b.date + b.startTime));
-
-        if (list.length === 0) { 
-            el.innerHTML = '<div class="text-center text-slate-400 py-8 text-sm">لا توجد مواعيد مطابقة</div>'; 
-            return; 
+            showToast('🗑️ تم مسح كل البيانات');
         }
 
-        el.innerHTML = list.map(a => {
-            const doc = doctors.find(d => d.id === a.doctorId);
-            return `
-                <div class="flex items-center gap-3 p-3 rounded-lg ${a.status === 'booked' ? 'bg-emerald-50 border border-emerald-200' : 'bg-white border border-slate-200'} hover:shadow-md transition">
-                    <div class="w-8 h-8 rounded-full ${a.status === 'booked' ? 'bg-emerald-500' : 'bg-slate-300'} flex items-center justify-center text-white text-xs font-bold shrink-0">${a.status === 'booked' ? '✓' : '○'}</div>
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-bold text-slate-800 text-sm">${a.startTime} - ${a.endTime}</span>
-                            <span class="text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">${a.date}</span>
-                        </div>
-                        <div class="text-xs text-emerald-600 font-medium">${doc ? doc.name : 'غير معروف'} | ${doc ? doc.specialty : ''}</div>
-                        ${a.status === 'booked' ? `<div class="text-xs text-slate-600 mt-0.5">👤 ${a.patientName} ${a.patientPhone ? '| 📞 ' + a.patientPhone : ''}</div>` : ''}
-                    </div>
-                    <div class="shrink-0">
-                        ${a.status === 'available' 
-                            ? `<button onclick="fastBookFromModal('${a.id}')" class="px-3 py-1.5 bg-emerald-500 text-white text-xs rounded-lg hover:bg-emerald-600 font-bold transition shadow">حجز</button>`
-                            : `<button onclick="cancelBooking('${a.id}')" class="px-3 py-1.5 bg-red-100 text-red-600 text-xs rounded-lg hover:bg-red-200 font-bold transition">إلغاء</button>`
-                        }
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+        function saveData() {
+            localStorage.setItem(DOCTORS_KEY, JSON.stringify(doctors));
+            localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
+            saveSettings();
+        }
 
-    function fastBookFromModal(id) {
-        closeModal();
-        const a = appointments.find(x => x.id === id);
-        document.getElementById('fb-doctor').value = a.doctorId;
-        loadAvailableSlots();
-        setTimeout(() => selectSlot(id), 100);
-        showToast('📝 أكمل بيانات المريض ثم اضغط تأكيد الحجز');
-    }
-
-    // ===== EXPORT =====
-    function exportToday() {
-        const today = getTodayStr();
-        const list = appointments.filter(a => a.date === today).sort((a,b) => a.startTime.localeCompare(b.startTime));
-        let csv = 'الطبيب,التخصص,التاريخ,من,إلى,حالة,المريض,هاتف,ملاحظات\n';
-        list.forEach(a => {
-            const doc = doctors.find(d => d.id === a.doctorId);
-            csv += `"${doc ? doc.name : ''}","${doc ? doc.specialty : ''}","${a.date}","${a.startTime}","${a.endTime}","${a.status === 'booked' ? 'محجوز' : 'متاح'}","${a.patientName}","${a.patientPhone}","${a.patientNotes}"\n`;
+        document.getElementById('modal-all').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
         });
-        const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `مواعيد_${today}.csv`;
-        link.click();
-        showToast('📥 تم تصدير الجدول كملف Excel');
-    }
 
-    // ===== UTILS =====
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.textContent = msg;
-        t.classList.remove('hidden');
-        t.classList.add('toast-anim');
-        setTimeout(() => { t.classList.add('hidden'); t.classList.remove('toast-anim'); }, 3000);
-    }
-
-    function clearAllData() {
-        if (!confirm('هل أنت متأكد من مسح كل الأطباء والمواعيد؟\n\n⚠️ لا يمكن التراجع عن هذا الإجراء!')) return;
-        doctors = []; 
-        appointments = []; 
-        saveData(); 
-        renderAll(); 
-        showToast('🗑️ تم مسح كل البيانات');
-    }
-
-    function saveData() {
-        localStorage.setItem('clinic_doctors', JSON.stringify(doctors));
-        localStorage.setItem('clinic_appointments', JSON.stringify(appointments));
-    }
-
-    // Close modal on outside click
-    document.getElementById('modal-all').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
-
-    // ===== START =====
-    init();
+        init();
     </script>
 </body>
 
